@@ -108,6 +108,28 @@ python3 ./scripts/run_regression_checks.py
 python3 ./scripts/run_pre_release_gate.py
 ```
 
+## Feishu / OpenClaw Stage Export
+
+如果你只想单独使用开发信 Skill，也建议把结果并入统一主表。
+
+在生成 `email input` 和 `email draft json` 后，再运行：
+
+```bash
+python3 ./scripts/build_feishu_stage_payload.py \
+  --email-input-json /tmp/email-input-from-intel.json \
+  --email-output-json /tmp/first-touch-email.json \
+  --combo-run-id manual-run \
+  --lead-id lead-001
+```
+
+这个脚本不会重新生成邮件草稿。
+
+它只负责把已有邮件结果转成 OpenClaw 可消费的文档 payload，用于：
+
+- 创建或更新开发信云文档
+- 回写 `Lead Workflow Master`
+- 支持“外部 lead 直接跑邮件草稿”的单点接入方式
+
 ## 发布前流程
 
 发布前固定执行：
