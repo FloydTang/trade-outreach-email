@@ -1,64 +1,62 @@
 ---
 name: trade-outreach-email
-description: Generate conservative, editable English outreach drafts for foreign-trade sales from structured lead inputs. Use when an operator needs a first-touch or follow-up email draft with subject options, review notes, and explicit reminders not to present unconfirmed facts as facts.
+description: Generate conservative first-touch or follow-up foreign-trade outreach emails from structured operator input and customer-intel summaries. Use when a sales operator needs editable English email drafts, subject options, and Chinese review notes without overstating inferred facts.
 ---
 
 # 开发信 Skill
 
 ## Overview
 
-用这个 Skill 把结构化客户信息转换成可人工修改后发送的英文邮件草稿。
+用这个 Skill 把客户基础信息、客户画像摘要和跟进阶段，转成可人工修改后发送的外贸英文邮件草稿。
 
-首版只覆盖两个场景：
+角色定位：
 
-- `first_touch`：首轮开发信
-- `follow_up`：跟进邮件
+- `开发信策略员`
+- 负责把上游结构化信息转成可编辑英文草稿
+- 不负责自动发送
+- 不负责替代搜索、初筛和背调
 
-它不是自动发送工具，也不是“万能写信器”。它的目标是把零散输入整理成更稳定、更易复核的英文草稿，同时明确提示哪些内容不能直接写死。
+## Chain Role
 
-## Standard Input
+- 在总链路中固定作为 `stage_worker`
+- 默认单节点策略：`attach_only`
+- 默认不独立声明飞书工作容器
+- 所有数据最终统一挂到 `Trade Lead Workflow Hub`
 
-输入统一为 JSON：
+## Agent-First Installation Notes
 
-```json
-{
-  "email_type": "first_touch",
-  "customer_name": "Anna",
-  "company_name": "Acme Foods",
-  "product_or_offer": "frozen mixed vegetables",
-  "goal": "introduce our factory and ask whether they are open to new suppliers",
-  "country_or_market": "Poland",
-  "customer_profile_summary": "Company website shows private-label frozen food focus in EU retail.",
-  "previous_contact_context": "",
-  "tone": "professional,warm",
-  "sender_name": "Leo",
-  "sender_company": "Ningbo FreshGrow Foods",
-  "signature": "",
-  "constraints": ""
-}
-```
+这个仓库默认提供两层说明：
 
-## Workflow
+- 公开层：根目录 `README.md`，保证最小可用
+- 增强层：`for-openclaw/README.md` 和 `references/00-单节点增强执行词.md`
 
-1. Normalize the input fields.
-2. Validate the input against the local JSON schema and confirm `email_type` is `first_touch` or `follow_up`.
-3. Build subject options based on scenario, product, and company name.
-4. Generate one main draft and one lighter alternative draft.
-5. Attach review notes for any claim that depends on summary, historical context, pricing, capability, or other unconfirmed details.
-6. Output in the structure defined in [output-template.md](./references/output-template.md).
+如果你要在龙虾里使用这个节点，优先复制增强执行词给龙虾，而不是先看教程型长文。
+
+## Inputs
+
+最终输入统一为结构化业务上下文，至少包括：
+
+- `email_type`
+- `product_or_offer`
+- `goal`
+- `sender_name`
+- `sender_company`
+
+如果上游来自客户背调，还可以先用桥接脚本生成标准输入。
 
 ## Output Requirements
 
-- 必须包含邮件类型
-- 必须包含 2 个标题候选
-- 必须包含至少 1 个英文正文草稿
-- 必须包含中文复核提示
-- 必须回显关键输入依据
-- 不能把不确定信息写成确定事实
+- 必须输出标题候选
+- 必须输出英文邮件草稿
+- 必须输出中文复核提示
+- 不能自动发送邮件
+- 不能改写上游已经明确的事实
+- OpenClaw 单节点默认只 attach，不单独建表
 
-## Main Script
+## Main Scripts
 
-默认脚本入口是 [build_email_draft.py](./scripts/build_email_draft.py)。
+- [build_email_draft.py](./scripts/build_email_draft.py)
+- [build_email_input_from_customer_intel.py](./scripts/build_email_input_from_customer_intel.py)
 
 ### Example
 
@@ -67,13 +65,11 @@ python3 ./scripts/build_email_draft.py --input-json ./examples/first-touch.json
 ```
 
 ```bash
-python3 ./scripts/run_regression_checks.py
+python3 ./scripts/build_email_input_from_customer_intel.py --input-json ./examples/customer-intel-report.json --email-type first_touch
 ```
 
-## Defaults
+## References
 
-- 本地模板生成优先
-- 不强依赖联网
-- 输出默认偏保守
-- 首版不覆盖报价邮件
-- 发送前必须人工复核
+- [00-单节点增强执行词.md](./references/00-单节点增强执行词.md)
+- [for-openclaw/README.md](./for-openclaw/README.md)
+- [for-openclaw/SKILL.md](./for-openclaw/SKILL.md)

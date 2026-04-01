@@ -1,52 +1,71 @@
 # 开发信 Skill for OpenClaw
 
-这是 `开发信 Skill` 的 OpenClaw-native 变体。
+这个目录提供 OpenClaw-native 的单节点包装版本，目标不是单独造一套飞书工作容器，而是把这个节点稳定挂到总链路里。
 
-它不替换根目录下的本地版，而是单独维护一套更适合云端工作流的输入包装：
+角色定位：
 
-- 上游由 OpenClaw 先整理操作员输入
-- 如有客户背调或公开资料摘要，也先由 OpenClaw 流程整理成结构化上下文
-- Python 脚本只负责把这些上下文保守合并，再调用核心草稿生成逻辑
+- `stage_worker`
+- `开发信策略员`
 
-## Why This Exists
+当前职责：
 
-根目录版本更适合 Codex / 本地脚本直接调用。
+- 接收 `operator_input` 和 `public_context`
+- 生成保守邮件草稿、标题候选和复核提示
+- 输出开发信阶段 payload
 
-OpenClaw 版的目标是：
+## 安装归口说明
 
-- 保留相同的邮件输出结构
-- 把上游上下文整理和邮件生成解耦
-- 避免在 OpenClaw 版里重复维护一套完整草稿逻辑
-- 继续坚持保守边界，不把上游推断直接写死到邮件中
+当前仓库采用两层结构：
 
-## Input Contract
+- 根目录 README：公开最小可用说明
+- 当前目录：龙虾 / OpenClaw 的单节点运行说明
+- 这个单节点仓库本身也保留可独立执行的最小功能
 
-OpenClaw 版接收一个包装后的 JSON：
+这个 Skill 的开源版本身就可以单独使用，并能完成当前节点的最小可用功能。
 
-```json
-{
-  "operator_input": {
-    "email_type": "follow_up",
-    "customer_name": "Nadia",
-    "company_name": "Nordic Home Textile AB",
-    "product_or_offer": "washed linen table textile collections",
-    "goal": "follow up on our catalog sharing and ask whether selected fabric swatches would be useful for review",
-    "country_or_market": "Sweden",
-    "tone": "professional,warm",
-    "sender_name": "Mia",
-    "sender_company": "Hangzhou LinenCraft Textiles",
-    "signature": "Best regards,\nMia\nHangzhou LinenCraft Textiles"
-  },
-  "public_context": {
-    "customer_profile_summary": "Brand appears focused on Scandinavian home textile collections with natural material positioning.",
-    "previous_contact_context": "We shared our digital catalog three days ago and mentioned low-MOQ support for seasonal collections.",
-    "constraints": "Keep the follow-up soft and design-oriented.",
-    "risk_rating": "Medium",
-    "entity_confidence": "medium",
-    "recommended_sales_angle_en": "Lead with a clean and design-oriented offer rather than a hard sell."
-  }
-}
-```
+如果你希望在龙虾 / OpenClaw 中获得更精致、更完整的使用体验，建议按下面流程复制增强执行词：
+
+- [飞书增强入口：复制增强执行词给龙虾](https://evenbetter.feishu.cn/wiki/ADmiwiultihx6Yk1p2UcjfmVn6d)
+
+如果链接打不开，请先确认使用和半斤九两科技会员群绑定的飞书账号登录。
+
+如果你暂时还没有绑定过，或当前还没有半斤九两科技的账号，请访问：[evenbetter.tech](https://evenbetter.tech)
+
+仓库内源码基线：
+
+- `../references/00-单节点增强执行词.md`
+- `./SKILL.md`
+
+## Feishu 接入约束
+
+当前这个 OpenClaw 变体如果要接飞书，默认必须挂到同一个主 Base 下运行。
+
+固定要求：
+
+- 先查主 Base，再查 `Lead Workflow Master`
+- 开发信结果只复用同一套 `Outreach Email Docs`
+- 已有开发信文档时，只追加草稿版本，不新建平行文档
+- 当前角色固定为 `stage_worker`
+- 当前节点固定 `attach_only`
+- `feishu_container_creation = forbidden`
+
+统一目标：
+
+- 所有数据最终统一挂到 `Trade Lead Workflow Hub`
+- 单节点不独立声明飞书工作容器
+
+## 推荐模型
+
+- `coze/doubao-seed-2-0-lite-260215`
+
+## 会员增强价值
+
+增强层重点不是换业务逻辑，而是减少安装试错：
+
+- 给龙虾一个可以直接复制的单节点执行词
+- 明确这个节点只做草稿生成和复核提示
+- 明确它只复用 `Outreach Email Docs`
+- 明确失败后要把已生成内容交回主代理统一回写
 
 ## Run Locally
 
@@ -56,13 +75,6 @@ python3 ./for-openclaw/scripts/build_email_draft_from_openclaw.py \
   --markdown-out /tmp/openclaw-email.md \
   --json-out /tmp/openclaw-email.json
 ```
-
-## Runtime Rules
-
-- `operator_input` 中的业务字段优先
-- `public_context` 只作为保守补充，不应覆盖明确的操作员输入
-- 如果 `risk_rating` 为 `High`，脚本会附加更强的人审约束
-- 任何 `previous_contact_context` 仍然需要人工复核
 
 ## Relationship to the Classic Version
 
