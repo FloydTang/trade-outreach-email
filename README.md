@@ -1,82 +1,64 @@
-# 开发信 Skill
+# Trade Outreach Email
+
+把客户基础信息、客户画像摘要和跟进阶段，转成可人工修改后发送的外贸英文邮件草稿。
+
+An open-source Codex skill for turning structured sales context into conservative English outreach drafts for first touch and follow-up scenarios.
 
 当前状态：可交付
 
-这个目录用于把客户基础信息、客户画像摘要和跟进阶段，转成可人工修改后发送的外贸英文邮件草稿。
+角色定位：`开发信策略员`
 
-定位：
+链路角色：
 
-- 把客户基础信息、客户画像、产品信息和跟进阶段转成可直接修改发送的外贸邮件
-- 优先覆盖首轮开发信、报价邮件、跟进邮件
+- 在总链路里是 `stage_worker`
+- 组合包 / 主代理是 `workflow_owner`
+- 单节点默认 `attach_only`
+- `feishu_container_creation = forbidden`
+- 单节点不独立声明飞书工作容器
+- 所有数据最终统一挂到同一个 `Trade Lead Workflow Hub`
 
-当前立项范围：
+上下游关系：
 
-- 首版先聚焦“首轮开发信 + 跟进邮件”
-- 先不做报价邮件，避免输入项和业务分支过早膨胀
-- 输出以可直接人工修改的英文邮件草稿为主，中文说明用于复核
+- 上游：[trade-customer-intel](https://github.com/FloydTang/trade-customer-intel) 或人工整理输入
+- 下游：人工复核与发送动作
 
-当前目录结构：
+## 公开最小可用说明
 
-```text
-.
-├── README.md
-├── SKILL.md
-├── 立项方案.md
-├── 验收记录.md
-├── scripts/
-│   ├── build_email_draft.py
-│   ├── build_email_input_from_customer_intel.py
-│   ├── run_regression_checks.py
-│   └── run_pre_release_gate.py
-├── examples/
-│   ├── first-touch.json
-│   ├── follow-up.json
-│   ├── solar-first-touch.json
-│   ├── textile-follow-up.json
-│   └── customer-intel-report.json
-└── references/
-    ├── input-fields.md
-    ├── output-template.md
-    ├── review-rules.md
-    └── customer-intel-integration.md
-└── schemas/
-    └── email-draft-input.schema.json
-└── for-openclaw/
-    ├── README.md
-    ├── SKILL.md
-    ├── examples/
-    ├── references/
-    ├── schemas/
-    └── scripts/
-```
+这个仓库公开层只解决一个问题：
+
+- 把上游结构化信息转成可人工复核的英文开发信草稿
+- 和组合包一样，这个单节点仓库本身就拥有可独立执行的最小功能
 
 当前最小能力：
 
-- 输入 `first_touch` 或 `follow_up` 两类邮件场景
-- 输出英文标题候选、英文正文草稿、中文复核提示、输入依据回显
+- 输入 `first_touch` 或 `follow_up`
+- 输出英文标题候选、英文正文草稿、中文复核提示
+- 支持从客户背调报告桥接成开发信输入
 - 默认本地运行，不依赖联网
-- 支持把“客户背调 Skill”的 JSON 报告桥接成开发信输入
-- 已提供固定样例输出，适合课程演示和后续改造
-- 已补正式输入 schema 和字段说明
-- 已提供最小回归检查脚本
-- 已提供发布前 gate 脚本
-- 已补最小 `for-openclaw/` 变体
 
-当前结论：
+## 飞书增强入口
 
-- 已达到“可演示”
-- 已达到“可交付”
-- 后续增强项见 `/Users/evenbetter/Downloads/C&CStudio/外贸skill/开发信skill/验收记录.md`
-- 采用“双轨逻辑”维护：可作为独立仓库发布，也可作为合集仓库中的稳定节点副本分发
+如果你要把这个节点接进龙虾 / OpenClaw 多代理链路，优先不要先看长教程，直接复制增强执行词给龙虾：
 
-后续进入开发或扩展前请先完成：
+- [飞书增强入口：复制增强执行词给龙虾](https://evenbetter.feishu.cn/wiki/ADmiwiultihx6Yk1p2UcjfmVn6d)
 
-1. 更新 `/Users/evenbetter/Downloads/C&CStudio/外贸skill/skill需求池.md`
-2. 填写 `/Users/evenbetter/Downloads/C&CStudio/外贸skill/模板/skill立项模板.md`
-3. 明确最小输入、输出格式和边界
-4. 参考 `/Users/evenbetter/Downloads/C&CStudio/外贸skill/开发信skill/立项方案.md` 收敛首版实现范围
+如果链接打开失败，请使用登记在半斤九两群里的飞书账号打开。
 
-## 快速运行
+如果你拿到的是半斤九两科技沟通过的执行包用户链接，也可以优先使用那个链接打开。
+
+如果你当前还没有半斤九两科技的账号，需要联系半斤九两科技，请访问：[evenbetter.tech](https://evenbetter.tech)
+
+仓库内对应的源码基线在：
+
+- `references/00-单节点增强执行词.md`
+- `for-openclaw/README.md`
+- `for-openclaw/SKILL.md`
+
+## 推荐模型
+
+- `coze/doubao-seed-2-0-lite-260215`
+
+## Quick Start
 
 ```bash
 python3 ./scripts/build_email_draft.py \
@@ -130,21 +112,58 @@ python3 ./scripts/build_feishu_stage_payload.py \
 - 回写 `Lead Workflow Master`
 - 支持“外部 lead 直接跑邮件草稿”的单点接入方式
 
-## 发布前流程
+## Chain Position
 
-发布前固定执行：
+推荐链路：
 
-1. `python3 ./scripts/run_pre_release_gate.py`
-2. 如有模板改动，重新生成受影响的 `examples/*-output.md` 和 `examples/*-output.json`
-3. 确认 `README.md`、`验收记录.md` 和 `for-openclaw/README.md` 没有状态漂移
+`trade-lead-discovery -> trade-lead-screening -> trade-customer-intel -> trade-outreach-email`
 
-## OpenClaw 变体
+关联仓库：
 
-`for-openclaw/` 是这个 Skill 的 OpenClaw-native 包装版本：
+- 客户搜索 Skill: [trade-lead-discovery](https://github.com/FloydTang/trade-lead-discovery)
+- 线索整理 Skill: [trade-lead-screening](https://github.com/FloydTang/trade-lead-screening)
+- 客户背调 Skill: [trade-customer-intel](https://github.com/FloydTang/trade-customer-intel)
 
-- 保留当前本地版的保守输出原则
-- 假设客户背景摘要、历史沟通、风险提示等上游上下文由 OpenClaw 工作流先整理
-- Python 包装脚本只负责把 OpenClaw 输入合并并转交给核心草稿生成器
+## Agent-First 增强价值
+
+会员增强层当前不是改业务逻辑，而是补这几件事：
+
+- 单节点在龙虾里有明确的 `stage_worker` 角色
+- 单节点默认只 attach，不独立建飞书工作容器
+- 飞书里提供可直接复制给龙虾的增强执行词
+- 与总编排链路保持同一套文档复用、失败回报和协作口径
+
+## Repository Structure
+
+```text
+.
+├── README.md
+├── SKILL.md
+├── 立项方案.md
+├── 验收记录.md
+├── scripts/
+│   ├── build_email_draft.py
+│   ├── build_email_input_from_customer_intel.py
+│   ├── run_regression_checks.py
+│   └── run_pre_release_gate.py
+├── examples/
+├── references/
+│   ├── 00-单节点增强执行词.md
+│   ├── customer-intel-integration.md
+│   ├── input-fields.md
+│   ├── output-template.md
+│   └── review-rules.md
+├── schemas/
+└── for-openclaw/
+```
+
+## OpenClaw Variant
+
+`for-openclaw/` 提供和总仓一致口径的单节点 OpenClaw 包装版本：
+
+- 角色固定为 `stage_worker`
+- 默认只允许 attach 到 `Trade Lead Workflow Hub`
+- 不允许独立创建 Base、主表或平行工作容器
 
 ## 作者
 
