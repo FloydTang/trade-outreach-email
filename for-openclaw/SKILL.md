@@ -1,12 +1,7 @@
 ---
 name: trade-outreach-email-for-openclaw
-description: OpenClaw-native version of the foreign-trade outreach email skill. Use structured operator input plus public-context summaries to generate conservative first-touch or follow-up email drafts without overstating inferred facts.
-openclaw_role: stage_worker
-workspace_owner_skill: trade-active-outreach-combo
-single_skill_policy: attach_only
-feishu_container_creation: forbidden
-requires_master_base: true
-requires_master_record: true
+description: OpenClaw-native version of the foreign-trade outreach email skill. Use structured operator input plus customer-intel source context to generate conservative first-touch or follow-up email drafts without overstating inferred facts or inventing recent customer events.
+metadata: {"openclaw":{"role":"stage_worker","workspace_owner_skill":"trade-active-outreach-combo","single_skill_policy":"attach_only","feishu_container_creation":"forbidden","requires_master_base":true,"requires_master_record":true,"table_policy":"adapt_existing_or_create_minimal","rule_capture":"ask_before_skill_update"}}
 ---
 
 # 开发信 Skill for OpenClaw
@@ -15,7 +10,13 @@ requires_master_record: true
 
 这个版本面向 OpenClaw 云端工作流。
 
-它假设操作员输入和公开资料摘要已经由上游节点整理好，然后由当前脚本进行保守合并，并调用根目录里的核心草稿生成器输出统一结构的邮件包。
+它假设操作员输入、公开资料摘要、近期客户信号和市场/合规信号已经由上游客户背调节点整理好，然后由当前脚本进行保守合并，并调用根目录里的核心草稿生成器输出统一结构的邮件包。
+
+## Table Policy
+
+- 优先适配企业已有表头、知识库归口或邮箱草稿箱，不强制使用课堂标准表。
+- 没有可用表格时，龙虾按企业产品、市场和跟进流程新建够用表。
+- 用户确认新的开发信风格、禁用表达、行业话术、跟进节奏或表头映射后，先追问：`是否更新到对应 Skill 以便下次自动复用`。真实写入必须得到用户授权。
 
 ## Inputs
 
@@ -28,19 +29,41 @@ requires_master_record: true
 }
 ```
 
-## Feishu Runtime Contract
+其中：
 
-- 当前角色固定为 `stage_worker`
-- 默认只允许附着到 `Trade Lead Workflow Hub`
-- 只允许复用 `Outreach Email Docs`
-- 不允许独立创建 Base、主表或平行工作容器
-- 必须先查 `Lead Workflow Master`
-- 已有开发信文档时，只追加草稿版本，不新建平行文档
+- `operator_input` 提供邮件场景、产品、目标、发件人等明确业务输入
+- `public_context` 提供客户画像摘要、历史沟通、风险提示，以及已明确批准的 `selected_sales_angle`、`selected_claims`、`selected_evidence`
+- 由客户背调桥接时，`draft_authorization` 必须为 `approved`
 
-## Output Requirements
+## Rules
+
+- 以 `operator_input` 为主，不自动覆盖
+- 以 `public_context` 为辅，只做保守补充
+- 不重新背调，不自行生成“客户最近发生了什么”
+- 近期动态、市场变化、合规/关税/贸易信号必须来自上游客户背调输出
+- 上游判定 `High` 风险、尚未 ready 或没有批准切入角度时，终止背调桥接的草稿生成
+- 在邮件包中保留 `ANGLE-*`、`CL-*` 和 `EV-*` 引用，便于人工复核
+- `follow_up` 仍要求有历史沟通上下文
+
+## Main Script
+
+使用 [build_email_draft_from_openclaw.py](./scripts/build_email_draft_from_openclaw.py)。
+
+```bash
+python3 ./for-openclaw/scripts/build_email_draft_from_openclaw.py \
+  --input-json ./for-openclaw/examples/sample-input.json
+```
+
+## Output
 
 - 输出结构与根目录版本一致
 - 保留中文复核提示
-- 生成标题候选、草稿正文和阶段 payload
 - 不自动发送邮件
-- 不重新做搜索或背调
+
+## Enhancement Entry
+
+增强权益不在仓库中展开正文。
+
+如需飞书落地、统一编排或多代理协作，请查看飞书文档：
+
+- <https://evenbetter.feishu.cn/wiki/W6GnwTZGFiUdJ0kXZv6cV4PSnpf>

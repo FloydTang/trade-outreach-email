@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+from __future__ import annotations
+
 import argparse
 import importlib.util
 import json
@@ -61,10 +63,43 @@ def merge_payload(payload: dict) -> dict:
         "sender_company": operator_input.get("sender_company", ""),
         "signature": operator_input.get("signature", ""),
         "constraints": operator_input.get("constraints") or public_context.get("constraints", ""),
+        "source_context": {
+            "draft_authorization": public_context.get("draft_authorization", "hold"),
+            "authorization_reasons": public_context.get("authorization_reasons", []),
+            "risk_rating": public_context.get("risk_rating", ""),
+            "entity_confidence": public_context.get("entity_confidence", ""),
+            "evidence_sufficiency": public_context.get("evidence_sufficiency", ""),
+            "intel_recommended_next_action": public_context.get("intel_recommended_next_action", ""),
+            "sieger_status": public_context.get("sieger_status", ""),
+            "verdict_card": public_context.get("verdict_card", {}),
+            "company_business_breakdown": public_context.get("company_business_breakdown", {}),
+            "tech_capability_procurement_concerns": public_context.get("tech_capability_procurement_concerns", {}),
+            "scale_financial_signals": public_context.get("scale_financial_signals", {}),
+            "sales_model_procurement_logic": public_context.get("sales_model_procurement_logic", {}),
+            "competition_map": public_context.get("competition_map", {}),
+            "growth_opportunities": public_context.get("growth_opportunities", []),
+            "image_summary": public_context.get("image_summary", {}),
+            "sieger_standard": public_context.get("sieger_standard", {}),
+            "recommended_sales_angle_en": public_context.get("recommended_sales_angle_en", ""),
+            "recommended_opening_signal_en": public_context.get("recommended_opening_signal_en", ""),
+            "recent_signals": public_context.get("recent_signals", []),
+            "market_signals": public_context.get("market_signals", []),
+            "evidence_titles": public_context.get("evidence_titles", []),
+            "evidence_refs": public_context.get("evidence_refs", []),
+            "selected_sales_angle": public_context.get("selected_sales_angle", {}),
+            "selected_claims": public_context.get("selected_claims", []),
+            "selected_evidence": public_context.get("selected_evidence", []),
+            "unconfirmed_fact_list": public_context.get("unconfirmed_fact_list", []),
+            "ambiguity_notes": public_context.get("ambiguity_notes", []),
+        },
     }
 
     if str(public_context.get("risk_rating", "")).strip().lower() == "high":
         extra = "High-risk lead from upstream context. Review manually before sending."
+        merged["constraints"] = (merged["constraints"] + " " + extra).strip()
+
+    if str(public_context.get("sieger_status", "")).strip() == "needs_manual_review":
+        extra = "SIEGER Verdict Card requires manual review before sending."
         merged["constraints"] = (merged["constraints"] + " " + extra).strip()
 
     return merged
@@ -96,12 +131,27 @@ def main() -> None:
     drafts = core.build_drafts(normalized)
     notes = core.build_review_notes(normalized)
     signals = core.build_input_signals(normalized)
-    markdown = core.render_markdown(normalized, subjects, drafts, notes, signals)
+    evidence_signals = core.build_evidence_signals(normalized)
+    unconfirmed_fact_checklist = core.build_unconfirmed_fact_checklist(normalized)
+    workflow_guidance = core.build_workflow_guidance(normalized)
+    markdown = core.render_markdown(
+        normalized,
+        subjects,
+        drafts,
+        notes,
+        signals,
+        evidence_signals,
+        unconfirmed_fact_checklist,
+        workflow_guidance,
+    )
     result = {
         "merged_input": merged,
         "subject_options": subjects,
         "drafts": drafts,
         "review_notes": notes,
+        "evidence_signals_used": evidence_signals,
+        "unconfirmed_fact_checklist": unconfirmed_fact_checklist,
+        "workflow_guidance": workflow_guidance,
         "input_signals_used": signals,
     }
 

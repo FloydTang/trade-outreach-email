@@ -1,81 +1,67 @@
-# Trade Outreach Email
-
-把客户基础信息、客户画像摘要和跟进阶段，转成可人工修改后发送的外贸英文邮件草稿。
-
-An open-source Codex skill for turning structured sales context into conservative English outreach drafts for first touch and follow-up scenarios.
+# 开发信 Skill
 
 当前状态：可交付
 
-角色定位：`开发信策略员`
+> 唯一开发源是 [trade-skills-collection](https://github.com/FloydTang/trade-skills-collection)；[trade-outreach-email](https://github.com/FloydTang/trade-outreach-email) 是独立发行镜像。
 
-这个仓库的开源内容本身即可独立使用，飞书增强入口不是必需安装步骤，而是增强体验选项。
+这个 Skill 用于把已确认的客户信息、客户画像摘要和背调信号，转成可人工修改后发送的英文邮件草稿。
 
-链路角色：
+它的当前公开定位是：`复核型开发信工作台`。
 
-- 在总链路里是 `stage_worker`
-- 组合包 / 主代理是 `workflow_owner`
-- 单节点默认 `attach_only`
-- `feishu_container_creation = forbidden`
-- 单节点不独立声明飞书工作容器
-- 所有数据最终统一挂到同一个 `Trade Lead Workflow Hub`
+## 这个 Skill 解决什么问题
 
-上下游关系：
+- 已经有了客户基础信息
+- 想更快生成首轮开发信或跟进邮件草稿
+- 但不希望把不确定信息写成事实
+- 希望开发信基于背调 Skill 给出的近期客户动态、市场变化和销售切入点，而不是模板群发
 
-- 上游：[trade-customer-intel](https://github.com/FloydTang/trade-customer-intel) 或人工整理输入
-- 下游：人工复核与发送动作
+## 职责边界
 
-## 公开最小可用说明
+- 负责把结构化输入转成英文草稿
+- 负责给出中文复核提示
+- 负责调用客户背调 Skill 已输出的近期信号和销售角度
+- 不负责自动发送
+- 不负责替代搜索、初筛和背调
+- 不负责重新查“客户最近发生了什么”，也不凭空编造近期动态
 
-这个仓库公开层只解决一个问题：
+## 当前默认能力
 
-- 把上游结构化信息转成可人工复核的英文开发信草稿
-- 和组合包一样，这个单节点仓库本身就拥有可独立执行的最小功能
+- `first_touch` 首轮开发信草稿
+- `follow_up` 跟进邮件草稿
+- 标题候选
+- 中文复核提示
+- 关键输入依据回显
+- 依据过的证据列表
+- 保留 `ANGLE-*`、`CL-*` 和 `EV-*` 复核链路
+- 近期客户信号和市场信号引用提示
+- 未确认事实清单
+- 客户背调桥接时，没有明确批准的销售角度则不生成草稿
+- 固定发送策略 `manual_review_only`
 
-## 两种权益
+## 当前不默认承诺
 
-这个 Skill 当前分成两种使用权益：
+- 自动发送邮件
+- 完全自动化个性化触达
+- 在弱证据下生成客户事实
+- 自行生成客户近期动态、新闻、合规变化或关税结论
 
-### 1. 开源权益
+## 最小输入输出
 
-- 直接使用当前 GitHub 仓库里的开源内容
-- 即插即用，适合先跑通最小版本
-- 适合自己阅读 README、运行脚本、替换样例和继续二次改造
+- 输入：邮件类型、客户名与公司名、产品或报价方向、客户摘要、发件人信息、可选 `source_context`
+- 输出：标题候选、英文正文草稿、中文复核提示、证据依据、近期/市场信号引用、未确认事实清单、发送策略
 
-### 2. 增强权益
+## 企业表格与规则沉淀
 
-- 在开源最小能力基础上，额外使用半斤九两科技提供的飞书增强执行词
-- 更适合龙虾 / OpenClaw 安装和执行
-- 使用体验会更精致、更完整，理解障碍和安装试错更少
-- 更容易和统一的 `Trade Lead Workflow Hub` 挂接
+- 这是开发信草稿生成能力，不是固定邮件结果表。
+- 企业已有表头、知识库归口或邮箱草稿箱优先沿用；没有可用表格时，再按产品、市场和跟进流程新建够用表。
+- 用户确认新的开发信风格、禁用表达、行业话术、跟进节奏或表头映射后，先追问：`是否更新到对应 Skill 以便下次自动复用`，授权后再写入 Skill。
 
-当前最小能力：
+## 固定提醒
 
-- 输入 `first_touch` 或 `follow_up`
-- 输出英文标题候选、英文正文草稿、中文复核提示
-- 支持从客户背调报告桥接成开发信输入
-- 默认本地运行，不依赖联网
-
-## 飞书增强入口
-
-这个 Skill 的开源版本身就可以单独使用，并能完成当前节点的最小可用功能。
-
-如果你希望在龙虾 / OpenClaw 中获得更精致、更完整的使用体验，建议按下面流程复制增强执行词：
-
-- [飞书增强入口：复制增强执行词给龙虾](https://evenbetter.feishu.cn/wiki/ADmiwiultihx6Yk1p2UcjfmVn6d)
-
-如果链接打不开，请先确认使用和半斤九两科技会员群绑定的飞书账号登录。
-
-如果你暂时还没有绑定过，或当前还没有半斤九两科技的账号，请访问：[evenbetter.tech](https://evenbetter.tech)
-
-仓库内对应的源码基线在：
-
-- `references/00-单节点增强执行词.md`
-- `for-openclaw/README.md`
-- `for-openclaw/SKILL.md`
-
-## 推荐模型
-
-- `coze/doubao-seed-2-0-lite-260215`
+- 发送前必须人工复核
+- 没有确认过的客户事实，不应写死到邮件里
+- 客户近期动态和市场变化应来自客户背调 Skill
+- 当前最稳的是基于公司级确认信息生成草稿
 
 ## Quick Start
 
@@ -86,135 +72,8 @@ python3 ./scripts/build_email_draft.py \
   --json-out /tmp/first-touch-email.json
 ```
 
-```bash
-python3 ./scripts/build_email_draft.py \
-  --input-json ./examples/follow-up.json
-```
+## 增强权益入口
 
-```bash
-python3 ./scripts/build_email_input_from_customer_intel.py \
-  --input-json ./examples/customer-intel-report.json \
-  --email-type first_touch \
-  --product-or-offer "frozen mixed vegetables" \
-  --sender-name "Leo" \
-  --sender-company "Ningbo FreshGrow Foods" \
-  --json-out /tmp/email-input-from-intel.json
-```
+如需数据留存、统一编排、多代理协作或飞书落地，请查看飞书文档：
 
-```bash
-python3 ./scripts/run_regression_checks.py
-```
-
-```bash
-python3 ./scripts/run_pre_release_gate.py
-```
-
-## Feishu / OpenClaw Stage Export
-
-如果你只想单独使用开发信 Skill，也建议把结果并入统一主表。
-
-在生成 `email input` 和 `email draft json` 后，再运行：
-
-```bash
-python3 ./scripts/build_feishu_stage_payload.py \
-  --email-input-json /tmp/email-input-from-intel.json \
-  --email-output-json /tmp/first-touch-email.json \
-  --combo-run-id manual-run \
-  --lead-id lead-001
-```
-
-这个脚本不会重新生成邮件草稿。
-
-它只负责把已有邮件结果转成 OpenClaw 可消费的文档 payload，用于：
-
-- 创建或更新开发信云文档
-- 回写 `Lead Workflow Master`
-- 支持“外部 lead 直接跑邮件草稿”的单点接入方式
-
-## Chain Position
-
-推荐链路：
-
-`trade-lead-discovery -> trade-lead-screening -> trade-customer-intel -> trade-outreach-email`
-
-关联仓库：
-
-- 客户搜索 Skill: [trade-lead-discovery](https://github.com/FloydTang/trade-lead-discovery)
-- 线索整理 Skill: [trade-lead-screening](https://github.com/FloydTang/trade-lead-screening)
-- 客户背调 Skill: [trade-customer-intel](https://github.com/FloydTang/trade-customer-intel)
-
-## Agent-First 增强价值
-
-会员增强层当前不是改业务逻辑，而是补这几件事：
-
-- 单节点在龙虾里有明确的 `stage_worker` 角色
-- 单节点默认只 attach，不独立建飞书工作容器
-- 飞书里提供可直接复制给龙虾的增强执行词
-- 与总编排链路保持同一套文档复用、失败回报和协作口径
-
-## Repository Structure
-
-```text
-.
-├── README.md
-├── SKILL.md
-├── 立项方案.md
-├── 验收记录.md
-├── scripts/
-│   ├── build_email_draft.py
-│   ├── build_email_input_from_customer_intel.py
-│   ├── run_regression_checks.py
-│   └── run_pre_release_gate.py
-├── examples/
-├── references/
-│   ├── 00-单节点增强执行词.md
-│   ├── customer-intel-integration.md
-│   ├── input-fields.md
-│   ├── output-template.md
-│   └── review-rules.md
-├── schemas/
-└── for-openclaw/
-```
-
-## OpenClaw Variant
-
-`for-openclaw/` 提供和总仓一致口径的单节点 OpenClaw 包装版本：
-
-- 角色固定为 `stage_worker`
-- 默认只允许 attach 到 `Trade Lead Workflow Hub`
-- 不允许独立创建 Base、主表或平行工作容器
-
-## 作者
-
-半斤九两科技
-
----
-
-<!-- jiuliang-about-start -->
-
-## 关于半斤九两 / About EVEN BETTER
-
-半斤九两科技（EVEN BETTER）专注“外贸 + AI”的真实落地。我们希望帮助外贸企业把产品、客户、渠道和团队流程，沉淀成客户看得懂、渠道跑得动、团队留得下的系统。
-
-我们主要提供：
-
-- 外贸 AI 落地方法：围绕 Build / Traffic / Team，判断企业该先建资产、放流量，还是建系统。
-- 企业表达与内容增长：把产品、案例、FAQ、老板经验和信任证据，整理成海外客户看得懂的内容资产。
-- 主动开发流程：从客户画像、线索搜索、客户背调到开发信和跟进复盘，跑出可复用闭环。
-- 团队 AI 工作流：把经验写进 AGENTS.md、SOP、模板库、检查清单和可复用 Skill。
-
-更多内容可以查看我们整理的 [《外贸人 Codex 蓝皮书》](https://github.com/FloydTang/waimaoren-codex-bluebook)。
-
-### 找到我们
-
-- 官网：[tang92.com](https://tang92.com)
-- 公众号：半斤九两
-- GitHub：[@FloydTang](https://github.com/FloydTang)
-
-扫码关注公众号，领取后续模板、案例和更新；也可以通过公众号后台留言联系九两。
-
-<p>
-  <img src="https://raw.githubusercontent.com/FloydTang/waimaoren-codex-bluebook/main/assets/wechat-qr.png" alt="半斤九两公众号二维码" width="180">
-</p>
-
-<!-- jiuliang-about-end -->
+- <https://evenbetter.feishu.cn/wiki/W6GnwTZGFiUdJ0kXZv6cV4PSnpf>
